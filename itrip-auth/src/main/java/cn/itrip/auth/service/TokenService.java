@@ -2,7 +2,6 @@ package cn.itrip.auth.service;
 
 import cn.itrip.auth.exception.TokenValidationFailedException;
 import cn.itrip.beans.pojo.ItripUser;
-
 /**
  * Token管理接口
  * @author hduser
@@ -50,7 +49,7 @@ public interface TokenService {
 	 * @param tokenID
 	 */
 	public void delete(String token);
-
+	
 	/**
 	 * 置换Token <BR/>
 	 *  1、首先要判断token是否有效 	<BR/>
@@ -60,10 +59,10 @@ public interface TokenService {
 	 * @param agent	User-Agent
 	 * @param token	旧的token
 	 * @return 新的token
-	 * @throws TokenValidationFailedException
-	 */
+	 * @throws TokenValidationFailedException 
+	 */	
 	public String replaceToken(String agent, String token) throws TokenValidationFailedException;
-
+	
 	/**
 	 * 验证token是否有效
 	 * @param agent

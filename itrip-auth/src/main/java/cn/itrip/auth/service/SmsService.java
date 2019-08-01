@@ -14,5 +14,5 @@ public interface SmsService {
 	 * @param datas 替换模板"您的验证码是{1}，请于{2}分钟内正确输入"中的内容
 	 * @throws Exception 
 	 */
-	public void send(String to,String templateId,String[] datas) throws Exception;
+	public void send(String to, String templateId, String[] datas) throws Exception;
 }

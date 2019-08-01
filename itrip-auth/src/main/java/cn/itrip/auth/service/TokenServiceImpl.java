@@ -1,21 +1,26 @@
 package cn.itrip.auth.service;
 
-import cn.itrip.auth.exception.TokenValidationFailedException;
-import cn.itrip.beans.pojo.ItripUser;
-import cn.itrip.common.MD5;
-import cn.itrip.common.RedisAPI;
-import cn.itrip.common.UserAgentUtil;
-import com.alibaba.fastjson.JSON;
-import cz.mallat.uasparser.UserAgentInfo;
-import org.apache.log4j.Logger;
-import org.springframework.stereotype.Service;
-
-import javax.annotation.Resource;
 import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
+
+import javax.annotation.Resource;
+
+import cn.itrip.common.MD5;
+import cn.itrip.common.UserAgentUtil;
+
+import org.apache.log4j.Logger;
+import org.springframework.stereotype.Service;
+
+import cn.itrip.auth.exception.TokenValidationFailedException;
+import cn.itrip.beans.pojo.ItripUser;
+import cn.itrip.common.RedisAPI;
+
+import com.alibaba.fastjson.JSON;
+
+import cz.mallat.uasparser.UserAgentInfo;
 
 /**
  * Token管理接口相关业务服务实现
@@ -95,7 +100,7 @@ public class TokenServiceImpl implements TokenService {
 	}
 
 	@Override
-	public ItripUser load(String token) {
+	public ItripUser load(String token) {		
 		return JSON.parseObject(redisAPI.get(token), ItripUser.class);
 	}
 

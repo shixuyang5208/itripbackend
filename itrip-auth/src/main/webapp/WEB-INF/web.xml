@@ -71,7 +71,7 @@
   <context-param>
     <!-- 指定系统根目录路径 -->
     <param-name>webAppRootKey</param-name>
-    <param-value>itrip-auth.root</param-value>
+    <param-value>itripauth.root</param-value>
   </context-param>
   <!-- Spring 加载 Log4j 的监听 -->
   <listener>
