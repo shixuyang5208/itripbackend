@@ -45,9 +45,7 @@ public class UserController {
 	 * @param userVO
 	 * @return
 	 */
-	@ApiOperation(value="使用邮箱注册",httpMethod = "POST",
-            protocols = "HTTP", produces = "application/json",
-            response = Dto.class,notes="使用邮箱注册 ")	
+
 	@RequestMapping(value="/doregister",method=RequestMethod.POST,produces = "application/json")
 	public @ResponseBody
 	Dto doRegister(
@@ -87,9 +85,7 @@ public class UserController {
 	 * @param userVO
 	 * @return
 	 */
-	@ApiOperation(value="使用手机注册",httpMethod = "POST",
-            protocols = "HTTP", produces = "application/json",
-            response = Dto.class,notes="使用手机注册 ")	
+
 	@RequestMapping(value="/registerbyphone",method=RequestMethod.POST,produces = "application/json")
 	public @ResponseBody Dto registerByPhone(
 			@ApiParam(name="userVO",value="用户实体",required=true)

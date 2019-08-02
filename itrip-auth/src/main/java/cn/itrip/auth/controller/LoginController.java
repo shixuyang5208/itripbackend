@@ -34,17 +34,9 @@ public class LoginController {
 
 	@Resource
 	private UserService userService;
-
 	@Resource
 	private TokenService tokenService;
 
-	@ApiOperation(value = "用户登录",httpMethod = "POST",
-            protocols = "HTTP", produces = "application/json",
-            response = Dto.class,notes="根据用户名、密码进行统一认证")	
-	@ApiImplicitParams({
-		@ApiImplicitParam(paramType="form",required=true,value="用户名",name="name",defaultValue="yao.liu2015@bdqn.cn"),
-		@ApiImplicitParam(paramType="form",required=true,value="密码",name="password",defaultValue="111111"),
-	})
 	@RequestMapping(value="/dologin",method=RequestMethod.POST,produces= "application/json")
 	public @ResponseBody Dto dologin(
 //			@ApiParam(required = true, name = "name", value = "用户名",defaultValue="yao.liu2015@bdqn.cn")
@@ -84,27 +76,4 @@ public class LoginController {
 			return DtoUtil.returnFail("参数错误！检查提交的参数名称是否正确。", ErrorCode.AUTH_PARAMETER_ERROR);			
 		}		
 	}
-	
-	@ApiOperation(value = "用户注销",httpMethod = "GET",
-            protocols = "HTTP", produces = "application/json",
-            response = Dto.class,notes="客户端需在header中发送token")
-	@ApiImplicitParam(paramType="header",required=true,name="token",value="用户认证凭据",defaultValue="PC-yao.liu2015@bdqn.cn-8-20170516141821-d4f514")
-	@RequestMapping(value="/logout",method=RequestMethod.GET,produces="application/json",headers="token")
-	public @ResponseBody Dto logout(HttpServletRequest request){		
-		//验证token
-		String token=request.getHeader("token");
-		if(!tokenService.validate(request.getHeader("user-agent"), token))
-			return DtoUtil.returnFail("token无效", ErrorCode.AUTH_TOKEN_INVALID);
-		//删除token和信息
-		try {
-			tokenService.delete(token);
-			return DtoUtil.returnSuccess("注销成功");
-		} catch (Exception e) {
-			e.printStackTrace();
-			return DtoUtil.returnFail("注销失败", ErrorCode.AUTH_UNKNOWN);
-		}
-		
-	}
-	
-
 }
