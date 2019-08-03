@@ -76,4 +76,20 @@ public class LoginController {
 			return DtoUtil.returnFail("参数错误！检查提交的参数名称是否正确。", ErrorCode.AUTH_PARAMETER_ERROR);			
 		}		
 	}
+
+	@RequestMapping(value = "logout",method = RequestMethod.GET,produces = "application/json",headers = "token")
+	@ResponseBody
+	public Dto doLogout(HttpServletRequest request){
+
+		String token=request.getHeader("token");
+		if(!tokenService.validate(request.getHeader("user-agent"),token)){
+			return DtoUtil.returnFail("无效token",ErrorCode.AUTH_TOKEN_INVALID);
+		}
+		try {
+			tokenService.delete(token);
+			return DtoUtil.returnSuccess("已注销！");
+		}catch (Exception e){
+			return DtoUtil.returnFail("注销失败！",ErrorCode.AUTH_UNKNOWN);
+		}
+	}
 }

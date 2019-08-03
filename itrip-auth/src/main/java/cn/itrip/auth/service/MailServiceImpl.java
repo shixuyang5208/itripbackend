@@ -20,24 +20,22 @@ public class MailServiceImpl implements MailService {
 	@Resource
 	private RedisAPI redisAPI;
 	@Resource
-	private SimpleMailMessage activationMailMessage;
-	/**
-	 * 发送注册激活邮件
-	 */
-	public void sendActivationMail(String mailTo, String activationCode) {
-		activationMailMessage.setTo(mailTo);		
-		activationMailMessage.setText("注册邮箱："+mailTo +"  激活码："+activationCode);
-		mailSender.send(activationMailMessage);
-		this.saveActivationInfo("activation:"+mailTo, activationCode);
+	private SimpleMailMessage simpleMailMessage;
+
+	public void saveActivationInfo(String key,String value){
+		redisAPI.set(key,30*60, value);
 	}
 
 	/**
-	 * 保存激活信息
-	 * 
-	 * @param key
-	 * @param value
+	 * 发送注册的激活邮件
+	 * @param mailTo
+	 * @param activationCode
 	 */
-	private void saveActivationInfo(String key, String value) {
-		redisAPI.set(key, 30*60, value);
+	public void sendActivationMail(String mailTo, String activationCode) {
+		simpleMailMessage.setTo(mailTo);
+		simpleMailMessage.setText("注册邮箱："+mailTo+"激活码："+activationCode);
+		mailSender.send(simpleMailMessage);
+		this.saveActivationInfo("activation"+mailTo,activationCode);
 	}
+
 }

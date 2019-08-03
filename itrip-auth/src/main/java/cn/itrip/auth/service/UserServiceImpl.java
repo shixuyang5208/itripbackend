@@ -21,72 +21,17 @@ import javax.annotation.Resource;
  * @author hduser
  *
  */
-@Service("useService")
+@Service("userService")
 public class UserServiceImpl implements UserService {
 
-	private Logger logger=Logger.getLogger(UserServiceImpl.class);
-    @Resource
-    private ItripUserMapper itripUserMapper;
-    @Resource
-    private RedisAPI redisAPI;
-    @Resource
+	private Logger logger = Logger.getLogger(UserServiceImpl.class);
+	@Resource
+	private ItripUserMapper itripUserMapper;
+	@Resource
+	private RedisAPI redisAPI;
+	@Resource
 	private MailService mailService;
-    @Resource
-    private SmsService smsService;
-	private int expire=1;//过期时间（分钟）
-    /**
-     * 创建用户
-     * @param user
-     * @throws Exception 
-     */
-    public void itriptxCreateUser(ItripUser user) throws Exception { 
-    	//发送激活邮件
-		String activationCode = MD5.getMd5(new Date().toLocaleString(), 32);
-		mailService.sendActivationMail(user.getUserCode(), activationCode);
-		//保存用户信息
-		itripUserMapper.insertItripUser(user);
-    }
-    /**
-     * 创建手机账号
-     */
-    @Override
-	public void itriptxCreateUserByPhone(ItripUser user) throws Exception {		
-		//发送短信验证码
-		String code=String.valueOf(MD5.getRandomCode());		
-		smsService.send(user.getUserCode(), "1", new String[]{code,String.valueOf(expire)});
-		//缓存验证码
-		String key="activation:"+user.getUserCode();
-		redisAPI.set(key, expire*60, code);	
-		//保存用户信息
-		itripUserMapper.insertItripUser(user);
-	}
-    public void updateUser(ItripUser user) throws Exception {
-        itripUserMapper.updateItripUser(user);
-    }
 
-    public void deleteUser(Long userId) throws Exception {
-        itripUserMapper.deleteItripUserById(userId);
-    }
-
-    /**
-     * 修改密码
-     * @param userId
-     * @param newPassword
-     * @throws Exception 
-     */
-    public void changePassword(Long userId, String newPassword) throws Exception {
-        ItripUser user =itripUserMapper.getItripUserById(userId);
-        user.setUserPassword(newPassword);        
-        itripUserMapper.updateItripUser(user);
-    }
-
-    public ItripUser findOne(Long userId) throws Exception {
-        return itripUserMapper.getItripUserById(userId);
-    }
-
-    public List<ItripUser> findAll() throws Exception {
-        return itripUserMapper.getItripUserListByMap(null);
-    }
 
     /**
      * 根据用户名查找用户
@@ -104,14 +49,58 @@ public class UserServiceImpl implements UserService {
 			return null;
     }
 
-	public Set<String> findRoles(String username) {
-		// TODO Auto-generated method stub
+	@Override
+	public ItripUser findOne(Long userId) throws Exception {
 		return null;
 	}
 
-	public Set<String> findPermissions(String username) {
-		// TODO Auto-generated method stub
+	@Override
+	public List<ItripUser> findAll() throws Exception {
 		return null;
+	}
+
+	@Override
+	public boolean isActive(String mail, String activationCode) throws Exception {
+		return false;
+	}
+
+	@Override
+	public void txCreateUserByPhone(ItripUser user) throws Exception {
+
+	}
+
+	@Override
+	public boolean validatePhone(String phoneNum, String verificationCode) throws Exception {
+		return false;
+	}
+
+
+	public void createUser(ItripUser user) throws Exception {
+		itripUserMapper.insertItripUser(user);
+	}
+
+	/**
+	 * 创建用户
+	 * @param user
+	 * @throws Exception
+	 */
+	@Override
+	public void txcreateUser(ItripUser user) throws Exception {
+		//发送激活邮件
+		String activationCode = MD5.getMd5(new Date().toLocaleString(),32);
+		mailService.sendActivationMail(user.getUserCode(),activationCode);
+		//保存（新增）用户信息
+		itripUserMapper.insertItripUser(user);
+	}
+
+	@Override
+	public void deleteUser(Long userId) throws Exception {
+
+	}
+
+	@Override
+	public void changePassword(Long userId, String newPassword) throws Exception {
+
 	}
 
 	@Override
@@ -129,54 +118,6 @@ public class UserServiceImpl implements UserService {
 			return null;
 	}
 
-	/**
-	 * 激活邮箱用户
-	 */
-	@Override
-	public boolean activate(String email, String code) throws Exception {
-		String key="activation:"+email;		
-		if(redisAPI.exist(key))
-			if(redisAPI.get(key).equals(code)){
-				ItripUser user=this.findByUsername(email);
-				if(EmptyUtils.isNotEmpty(user))
-				{
-					logger.debug("激活用户"+email);
-					user.setActivated(1);//激活用户
-					user.setUserType(0);//自注册用户
-					user.setFlatID(user.getId());
-					itripUserMapper.updateItripUser(user);
-					return true;
-				}
-			}
-				
-		return false;
-	}
-	/**
-	 * 短信验证手机号
-	 * @throws Exception 
-	 */
-	@Override
-	public boolean validatePhone(String phoneNumber, String code) throws Exception {
-		String key="activation:"+phoneNumber;
-		if(redisAPI.exist(key))
-			if(redisAPI.get(key).equals(code)){
-				ItripUser user=this.findByUsername(phoneNumber);
-				if(EmptyUtils.isNotEmpty(user))
-				{
-					logger.debug("用户手机验证已通过："+phoneNumber);
-					user.setActivated(1);//激活用户
-					user.setUserType(0);//自注册用户
-					user.setFlatID(user.getId());
-					itripUserMapper.updateItripUser(user);
-					return true;
-				}
-			}
-		return false;
-	}
-	@Override
-	public void itripCreateUser(ItripUser user) throws Exception {
-		itripUserMapper.insertItripUser(user);
-	}
 
 	
 
