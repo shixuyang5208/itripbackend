@@ -32,6 +32,10 @@ public class UserServiceImpl implements UserService {
 	@Resource
 	private MailService mailService;
 
+	@Resource
+	SmsService smsService;
+
+	private int expire=1;//过期时间分钟
 
     /**
      * 根据用户名查找用户
@@ -51,26 +55,73 @@ public class UserServiceImpl implements UserService {
 
 	@Override
 	public ItripUser findOne(Long userId) throws Exception {
-		return null;
+		return itripUserMapper.getItripUserById(userId);
 	}
 
 	@Override
 	public List<ItripUser> findAll() throws Exception {
-		return null;
+		return itripUserMapper.getItripUserListByMap(null);
 	}
 
+	/**
+	 * 激活邮箱用户
+	 * @param mail 邮箱账号
+	 * @param activationCode 激活码
+	 * @return
+	 * @throws Exception
+	 */
 	@Override
-	public boolean isActive(String mail, String activationCode) throws Exception {
-		return false;
+	public boolean active(String mail, String activationCode) throws Exception {
+		String key = "activation:"+mail;
+		if(redisAPI.exist(key)){
+			if(redisAPI.get(key).equals(activationCode)){
+				ItripUser user = this.findByUsername(mail);
+				if(EmptyUtils.isNotEmpty(user)) {
+					logger.debug("激活用户："+mail);
+					user.setActivated(1);//激活用户
+					user.setUserType(0);//自注册用户
+					user.setFlatID(user.getId());
+					return true;
+				}
+			}
+		}
+    	return false;
 	}
+
 
 	@Override
 	public void txCreateUserByPhone(ItripUser user) throws Exception {
-
+		String code = String.valueOf(MD5.getRandomCode());
+		smsService.send(user.getUserCode(),"1",new String[]{code,String.valueOf(expire)});
+		//缓存验证码
+		String key = "activation:" + user.getUserCode();
+		redisAPI.set(key,expire*60,code);
+		//保存用户信息
+		itripUserMapper.insertItripUser(user);
 	}
 
+	/**
+	 * 短信验证手机号
+	 * @param phoneNum
+	 * @param verificationCode 验证码
+	 * @return 是否激活成功
+	 * @throws Exception
+	 */
 	@Override
 	public boolean validatePhone(String phoneNum, String verificationCode) throws Exception {
+		String key = "activation:" + phoneNum;
+		if (redisAPI.exist(key)){
+			if (redisAPI.get(key).equals(verificationCode)){
+				ItripUser user = this.findByUsername(phoneNum);
+				if (EmptyUtils.isNotEmpty(user)){
+					logger.debug("用户手机验证通过："+phoneNum);
+					user.setActivated(1);
+					user.setFlatID(user.getId());
+					itripUserMapper.insertItripUser(user);
+					return true;
+				}
+			}
+		}
 		return false;
 	}
 
@@ -80,7 +131,7 @@ public class UserServiceImpl implements UserService {
 	}
 
 	/**
-	 * 创建用户
+	 * 创建邮箱用户
 	 * @param user
 	 * @throws Exception
 	 */
@@ -95,12 +146,20 @@ public class UserServiceImpl implements UserService {
 
 	@Override
 	public void deleteUser(Long userId) throws Exception {
-
+		itripUserMapper.deleteItripUserById(userId);
 	}
 
+	/**
+	 * 修改密码
+	 * @param userId
+	 * @param newPassword 新密码
+	 * @throws Exception
+	 */
 	@Override
 	public void changePassword(Long userId, String newPassword) throws Exception {
-
+		ItripUser user = itripUserMapper.getItripUserById(userId);
+		user.setUserPassword(newPassword);
+		itripUserMapper.updateItripUser(user);
 	}
 
 	@Override
@@ -117,11 +176,4 @@ public class UserServiceImpl implements UserService {
 		else
 			return null;
 	}
-
-
-	
-
-	
-	
-   
 }

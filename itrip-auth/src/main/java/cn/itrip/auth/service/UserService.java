@@ -30,7 +30,7 @@ public interface UserService {
 	 * @return 是否激活成功
 	 * @throws Exception
 	 */
-	public boolean isActive(String mail,String activationCode)throws Exception;
+	public boolean active(String mail,String activationCode)throws Exception;
 
 	/**
 	 * 手机注册账户
