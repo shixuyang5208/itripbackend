@@ -30,8 +30,9 @@ public class VedorsController {
      */
     @RequestMapping("/wechat/login")
     public void wechatLogin(HttpServletResponse response){
-        String qrconnect = "https://open.weixin.qq.com/connect/qrconnect?appid=wx9168f76f000a0d4c&redirect_uri=http%3a%2f%2fitrip.project.bdqn.cn%2fauth%2fvendors%2fwechat%2fcallback" +
-                "&response_type=code&scope=snsapi_login&state=STATE#wechat_redirect";
+        String qrconnect = "https://open.weixin.qq.com/connect/qrconnect?appid=wx9168f76f000a0d4c&redirect_uri=" +
+                "http%3a%2f%2fitrip.project.bdqn.cn%2fauth%2fvendors%2fwechat%2fcallback&response_type=code&scope=" +
+                "snsapi_login&state=STATE#wechat_redirect";
         try {
             response.sendRedirect(qrconnect);
         } catch (Exception e){

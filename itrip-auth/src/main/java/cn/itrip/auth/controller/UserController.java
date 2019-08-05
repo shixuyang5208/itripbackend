@@ -48,10 +48,9 @@ public class UserController {
      * @param userVO
      * @return
      */
-    @RequestMapping(value = "/doregister")
+    @RequestMapping(value = "/doregister",method = RequestMethod.POST,produces = "application/json")
     @ResponseBody
-    public Dto doRegister(@ApiParam(name = "userVO",value = "用户实体",required = true)
-                          @RequestBody ItripUserVO userVO){
+    public Dto doRegister(@RequestBody ItripUserVO userVO){
         if (!validEmail(userVO.getUserCode())){
             return DtoUtil.returnFail("请使用正确的邮箱地址注册",ErrorCode.AUTH_ILLEGAL_USERCODE);
         }
@@ -84,10 +83,7 @@ public class UserController {
      */
     @RequestMapping(value = "/activate",method = RequestMethod.PUT,produces = "application/json")
     @ResponseBody
-    public Dto active(@ApiParam(name = "user",value = "注册邮箱地址",defaultValue = "test@dbqn.cn")
-                      @RequestParam String user,
-                      @ApiParam(name = "code",value = "激活码",defaultValue = "018f9a8b2381839ee6f40ab2207c0cfe")
-                      @RequestParam String code
+    public Dto active(@RequestParam String user,@RequestParam String code
                       ){
         try {
             if (userService.active(user,code)){
@@ -107,10 +103,9 @@ public class UserController {
      * @param itripUserVO
      * @return
      */
-    @RequestMapping(value = "/registerByPhone",method = RequestMethod.POST,produces = "application/json")
+    @RequestMapping(value = "/registerbyphone",method = RequestMethod.POST,produces = "application/json")
     @ResponseBody
-    public Dto registerByPhone(@ApiParam(name = "userVO",value = "用户实体",required = true)
-                               @RequestBody ItripUserVO itripUserVO){
+    public Dto registerByPhone(@RequestBody ItripUserVO itripUserVO){
         try {
             if (!validPhone(itripUserVO.getUserCode())){
                 return DtoUtil.returnFail("注册失败，请使用正确手机号",ErrorCode.AUTH_ILLEGAL_USERCODE);
@@ -121,7 +116,7 @@ public class UserController {
             user.setUserPassword(itripUserVO.getUserPassword());
             user.setUserType(0);
             user.setUserName(itripUserVO.getUserName());
-            if (userService.findByUsername(user.getUserCode()) != null){
+            if (userService.findByUsername(user.getUserCode()) == null){
                 user.setUserPassword(MD5.getMd5(user.getUserPassword(),32));
                 userService.txCreateUserByPhone(user);
                 return DtoUtil.returnSuccess();
@@ -142,12 +137,9 @@ public class UserController {
      * @param code
      * @return
      */
-    @RequestMapping(value = "/validatePhone",method = RequestMethod.PUT,produces = "application/json")
+    @RequestMapping(value = "/validatephone",method = RequestMethod.PUT,produces = "application/json")
     @ResponseBody
-    public Dto validatePhone(@ApiParam(name = "user",value = "手机号码",defaultValue = "13811565189")
-                             @RequestParam String user,
-                             @ApiParam(name = "code",value = "验证码",defaultValue = "8888")
-                             @RequestParam String code){
+    public Dto validatePhone(@RequestParam String user,@RequestParam String code){
         try {
             if (userService.validatePhone(user,code)){
                 return DtoUtil.returnSuccess("验证成功");
@@ -167,10 +159,9 @@ public class UserController {
      * @param name
      * @return
      */
-    @RequestMapping(value = "/checkUser",method = RequestMethod.GET,produces = "application/json")
+    @RequestMapping(value = "/ckusr",method = RequestMethod.GET,produces = "application/json")
     @ResponseBody
-    public Dto checkUser(@ApiParam(name = "name",value = "被检查的用户名",defaultValue = "test@bdqn.cn")
-                         @RequestParam String name){
+    public Dto checkUser(@RequestParam String name){
         try {
             if (userService.findByUsername(name) == null){
                 return DtoUtil.returnSuccess("用户尚未注册");

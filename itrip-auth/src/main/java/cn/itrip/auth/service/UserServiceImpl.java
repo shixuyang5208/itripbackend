@@ -35,7 +35,7 @@ public class UserServiceImpl implements UserService {
 	@Resource
 	SmsService smsService;
 
-	private int expire=1;//过期时间分钟
+	private int expire=5;//过期时间分钟
 
     /**
      * 根据用户名查找用户
@@ -89,6 +89,11 @@ public class UserServiceImpl implements UserService {
 	}
 
 
+    /**
+     * 使用手机注册
+     * @param user
+     * @throws Exception
+     */
 	@Override
 	public void txCreateUserByPhone(ItripUser user) throws Exception {
 		String code = String.valueOf(MD5.getRandomCode());

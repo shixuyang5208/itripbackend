@@ -12,7 +12,7 @@ import cn.itrip.common.RedisAPI;
  * @author hduser
  *
  */
-@Service("mailService")
+@Service("mailservice")
 public class MailServiceImpl implements MailService {
 
 	@Resource
@@ -33,7 +33,7 @@ public class MailServiceImpl implements MailService {
 	 */
 	public void sendActivationMail(String mailTo, String activationCode) {
 		simpleMailMessage.setTo(mailTo);
-		simpleMailMessage.setText("注册邮箱："+mailTo+"激活码："+activationCode);
+		simpleMailMessage.setText("热车迫在眉睫！！！"+mailTo+"激活码："+activationCode);
 		mailSender.send(simpleMailMessage);
 		this.saveActivationInfo("activation"+mailTo,activationCode);
 	}
