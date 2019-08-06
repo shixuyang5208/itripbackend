@@ -58,7 +58,11 @@ public class Page<T> {
         this.total = total;//总记录数
         this.pageSize = pagesize;//页码容量
         //总页数=总记录数total/pageSize（+1）
-        this.pageCount = (total + this.pageSize - 1) /this.pageSize;
+        if (this.total%this.pageSize == 0){
+            this.pageCount = this.total/this.pageSize;
+        }else {
+            this.pageCount = this.total/this.pageSize + 1;
+        }
         //下标起始位置：(curPage-1)*pageSize
         this.beginPos = (curPage-1)*pageSize;
     }
