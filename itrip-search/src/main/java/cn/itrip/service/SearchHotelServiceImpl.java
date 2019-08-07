@@ -29,7 +29,7 @@ public class SearchHotelServiceImpl implements SearchHotelService {
      */
     @Override
     public Page<ItripHotelVO> searchHotelPage(SearchHotelVO searchHotelVO, Integer pageNum, Integer pageSize) throws Exception {
-        SolrQuery solrQuery = new SolrQuery("*:*");
+        /*SolrQuery solrQuery = new SolrQuery("*:*");
         StringBuffer stringBuffer = new StringBuffer();
         int flag=0;
         if (EmptyUtils.isNotEmpty(searchHotelVO){
@@ -50,7 +50,7 @@ public class SearchHotelServiceImpl implements SearchHotelService {
 
                 }
             }
-        }
+        }*/
         return null;
     }
 
