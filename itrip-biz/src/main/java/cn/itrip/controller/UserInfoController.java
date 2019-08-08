@@ -59,7 +59,7 @@ public class UserInfoController {
         }
     }
 
-    @RequestMapping("deleteuserlinkuser")
+    @RequestMapping("deluserlinkuser")
     @ResponseBody
     public Dto deleteItripUserLinkUser(@RequestParam Long[] ids,HttpServletRequest request) {
         String tokenString = request.getHeader("token");
@@ -89,7 +89,7 @@ public class UserInfoController {
     }
 
 
-    @RequestMapping("updateuserlinkuser")
+    @RequestMapping("modifyuserlinkuser")
     @ResponseBody
     public Dto updateUserLinkUser(@RequestBody ItripModifyUserLinkUserVO modifyUserLinkUserVO,HttpServletRequest request){
         String tokenString = request.getHeader("token");

@@ -80,16 +80,15 @@ public class LoginController {
 	@RequestMapping(value = "logout",method = RequestMethod.GET,produces = "application/json",headers = "token")
 	@ResponseBody
 	public Dto doLogout(HttpServletRequest request){
-
-		String token=request.getHeader("token");
-		if(!tokenService.validate(request.getHeader("user-agent"),token)){
-			return DtoUtil.returnFail("无效token",ErrorCode.AUTH_TOKEN_INVALID);
+		String token =request.getHeader("token");
+		if (tokenService.validate("user-agent",token)){
+			try {
+				tokenService.delete(token);
+				return DtoUtil.returnSuccess("注销成功！");
+			}catch (Exception e){
+				return DtoUtil.returnFail("注销失败",ErrorCode.AUTH_UNKNOWN);
+			}
 		}
-		try {
-			tokenService.delete(token);
-			return DtoUtil.returnSuccess("已注销！");
-		}catch (Exception e){
-			return DtoUtil.returnFail("注销失败！",ErrorCode.AUTH_UNKNOWN);
-		}
+			return DtoUtil.returnFail("token已失效",ErrorCode.AUTH_TOKEN_INVALID);
 	}
 }
