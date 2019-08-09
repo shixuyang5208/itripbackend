@@ -73,6 +73,7 @@ public class SearchHotelServiceImpl implements SearchHotelService {
 
     @Override
     public List<ItripHotelVO> searchHotelByHotCity(Integer cityId, Integer pageSize) throws Exception {
+        //jgj
         return null;
     }
 }
