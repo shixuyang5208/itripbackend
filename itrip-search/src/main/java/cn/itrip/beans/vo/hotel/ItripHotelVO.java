@@ -7,7 +7,7 @@ import java.io.Serializable;
  * 返给给客户端的酒店数据
  * Created by XX on 17-5-10.
  */
-public class ItripHotelVO implements Serializable {
+public class ItripHotelVO {
 
     @Field("id")
     private Long id;
