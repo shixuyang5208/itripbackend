@@ -2,9 +2,15 @@ package cn.itrip.dao;
 
 import java.io.Serializable;
 
-public class Param implements Serializable {
+/**
+ * Created by zezhong.shang on 17-5-11.
+ */
+public class Param implements Serializable{
+
     private String key;
+
     private Object value;
+
     private String operator;
 
     public static class OPERATOR{
@@ -34,6 +40,18 @@ public class Param implements Serializable {
     }
 
     public void setOperator(String operator) {
+        this.operator = operator;
+    }
+
+    public Param(String key, Object value) {
+        this.key = key;
+        this.value = value;
+        this.operator=OPERATOR.AND;
+    }
+
+    public Param(String key, Object value, String operator) {
+        this.key = key;
+        this.value = value;
         this.operator = operator;
     }
 }

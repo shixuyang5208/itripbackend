@@ -7,6 +7,7 @@ import cn.itrip.common.Page;
 import cn.itrip.common.PropertiesUtils;
 import cn.itrip.dao.BaseQuery;
 import org.apache.solr.client.solrj.SolrQuery;
+import org.springframework.stereotype.Service;
 
 import java.nio.Buffer;
 import java.util.List;
@@ -14,6 +15,7 @@ import java.util.List;
 /*
 solr搜索酒店实现类
  */
+@Service
 public class SearchHotelServiceImpl implements SearchHotelService {
 
     public static String URL = PropertiesUtils.get("database.properties","baseUrl");
@@ -32,22 +34,22 @@ public class SearchHotelServiceImpl implements SearchHotelService {
         SolrQuery solrQuery = new SolrQuery("*:*");
         StringBuffer tempQuery = new StringBuffer();
         int tempFlag=0;
-        if (EmptyUtils.isNotEmpty(searchHotelVO){
+        if (EmptyUtils.isNotEmpty(searchHotelVO)){
             //目的地
-            if (EmptyUtils.isNotEmpty(searchHotelVO.getDestination())){
-                tempQuery.append(" destination :"+ searchHotelVO.getDestination());
+            if (EmptyUtils.isNotEmpty(searchHotelVO.getDestination()))
+                tempQuery.append(" destination :" + searchHotelVO.getDestination());
                 tempFlag = 1;
             }
             //酒店等级
-            if (EmptyUtils.isNotEmpty(searchHotelVO.getHotelLevel())){
-                solrQuery.addField("hotelLevle:"+searchHotelVO.getHotelLevel()+"");
+            if (EmptyUtils.isNotEmpty(searchHotelVO.getHotelLevel())) {
+                solrQuery.addField("hotelLevle:" + searchHotelVO.getHotelLevel() + "");
             }
             //关键词
-            if (EmptyUtils.isNotEmpty(searchHotelVO.getKeywords())){
-                if (tempFlag == 1){
-                    tempQuery.append(" AND keyword :"+searchHotelVO.getKeywords());
+            if (EmptyUtils.isNotEmpty(searchHotelVO.getKeywords())) {
+                if (tempFlag == 1) {
+                    tempQuery.append(" AND keyword :" + searchHotelVO.getKeywords());
                 } else {
-                    tempQuery.append(" keyword :"+searchHotelVO.getKeywords());
+                    tempQuery.append(" keyword :" + searchHotelVO.getKeywords());
                 }
             }
 
@@ -67,13 +69,45 @@ public class SearchHotelServiceImpl implements SearchHotelService {
                 buffer.append(")");
                 solrQuery.addFilterQuery(buffer.toString());
             }
-        }
-        return null;
+            if (EmptyUtils.isNotEmpty(searchHotelVO.getMaxPrice())) {
+                solrQuery.addFilterQuery("minPrice:" + "[* TO " + searchHotelVO.getMaxPrice() + "]");
+            }
+            if (EmptyUtils.isNotEmpty(searchHotelVO.getMinPrice())) {
+                solrQuery.addFilterQuery("minPrice:" + "[" + searchHotelVO.getMinPrice() + " TO *]");
+            }
+
+            if (EmptyUtils.isNotEmpty(searchHotelVO.getAscSort())) {
+                solrQuery.addSort(searchHotelVO.getAscSort(), SolrQuery.ORDER.asc);
+            }
+
+            if (EmptyUtils.isNotEmpty(searchHotelVO.getDescSort())) {
+                solrQuery.addSort(searchHotelVO.getDescSort(), SolrQuery.ORDER.desc);
+            }
+
+            if (EmptyUtils.isNotEmpty(tempQuery.toString())) {
+                solrQuery.setQuery(tempQuery.toString());
+            }
+
+        Page<ItripHotelVO> page = baseQuery.queryPage(solrQuery, pageNum, pageSize, ItripHotelVO.class);
+        return page;
     }
 
+    /**
+     * 根据热门城市查询酒店
+     * @param cityId
+     * @param pageSize
+     * @return
+     * @throws Exception
+     */
     @Override
     public List<ItripHotelVO> searchHotelByHotCity(Integer cityId, Integer pageSize) throws Exception {
-        //jgj
-        return null;
+        SolrQuery query = new SolrQuery("*:*");
+        if (EmptyUtils.isNotEmpty(cityId)){
+            query.addFilterQuery("cityId:"+cityId);
+        }else {
+            return null;
+        }
+        List<ItripHotelVO> list = baseQuery.queryList(query,pageSize,ItripHotelVO.class);
+        return list;
     }
 }
