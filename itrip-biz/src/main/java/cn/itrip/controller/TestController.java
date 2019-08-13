@@ -34,7 +34,7 @@ public class TestController {
      */
     @RequestMapping("/queryArea")
     @ResponseBody
-    public Dto<TempVO> queryArea() throws Exception {
+    public List<TempVO> queryArea() throws Exception {
         List<TempVO> tempVOList = new ArrayList<>();
         List<ItripAreaDic> itripAreaDicList = null;
         Map<String,Object> param = new HashMap<String,Object> ();
@@ -57,7 +57,7 @@ public class TestController {
                 }
             }
             if (EmptyUtils.isNotEmpty(list)){
-                vo.getRootName(new Character(array[i].toString()));
+                vo.setRootName(new Character(array[i]).toString());
                 vo.setLeafs(list);
                 tempVOList.add(vo);
             }
