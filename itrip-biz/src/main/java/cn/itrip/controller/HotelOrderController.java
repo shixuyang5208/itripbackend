@@ -7,6 +7,7 @@ import cn.itrip.beans.pojo.ItripUser;
 import cn.itrip.beans.vo.order.ItripSearchOrderVO;
 import cn.itrip.beans.vo.order.RoomStoreVO;
 import cn.itrip.beans.vo.order.ValidateRoomStoreVO;
+import cn.itrip.beans.vo.store.StoreVO;
 import cn.itrip.common.DtoUtil;
 import cn.itrip.common.EmptyUtils;
 import cn.itrip.common.Page;
@@ -25,6 +26,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Controller
@@ -41,6 +43,8 @@ public class HotelOrderController {
     private ItripHotelRoomService itripHotelRoomService;
     @Resource
     private ItripHotelTempStoreService itripHotelTempStoreService;
+    @Resource
+
 
     /**
      *根据条件查询个人订单列表，并分页显示
@@ -99,14 +103,14 @@ public class HotelOrderController {
         ItripUser currentUser = validationToken.getCurrentUser(token);
         ItripHotel itripHotel = null;
         ItripHotelRoom room = null;
-        RoomStoreVO vo = null;
+        RoomStoreVO roomStoreVO = null;
         try {
             if (EmptyUtils.isEmpty(currentUser)) {
                 return DtoUtil.returnFail("token失效，请重登录", "100000");
             }else if (EmptyUtils.isEmpty(validateRoomStoreVO.getHotelId())){
                 return DtoUtil.returnFail("hotelId不能为空", "100510");
             }else {
-                vo = new RoomStoreVO();
+                roomStoreVO = new RoomStoreVO();
                 itripHotel = itripHotelService.getItripHotelById(validateRoomStoreVO.getHotelId());
                 room = itripHotelRoomService.getItripHotelRoomById(validateRoomStoreVO.getRoomId());
                 Map param = new HashMap();
@@ -114,7 +118,17 @@ public class HotelOrderController {
                 param.put("endTime",validateRoomStoreVO.getCheckOutDate());
                 param.put("hotelId",validateRoomStoreVO.getHotelId());
                 param.put("roomId",validateRoomStoreVO.getRoomId());
+                List<StoreVO> storeVOList = itripHotelTempStoreService.queryRoomStore(param);
+                roomStoreVO.setCheckInDate(validateRoomStoreVO.getCheckInDate());
+                roomStoreVO.setCheckOutDate(validateRoomStoreVO.getCheckOutDate());
+                roomStoreVO.setHotelId(validateRoomStoreVO.getHotelId());
+                roomStoreVO.setHotelName(itripHotel.getHotelName());
+                roomStoreVO.setRoomId(room.getId());
+                roomStoreVO.setPrice(room.getRoomPrice());
+                roomStoreVO.setCount(1);
+                if (EmptyUtils.isNotEmpty(storeVOList)){
 
+                }
             }
 
         }catch (Exception e){
