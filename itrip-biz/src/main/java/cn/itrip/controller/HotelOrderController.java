@@ -127,7 +127,10 @@ public class HotelOrderController {
                 roomStoreVO.setPrice(room.getRoomPrice());
                 roomStoreVO.setCount(1);
                 if (EmptyUtils.isNotEmpty(storeVOList)){
-
+                    roomStoreVO.setStore(storeVOList.get(0).getStore());
+                    return DtoUtil.returnSuccess("获取成功",roomStoreVO);
+                }else {
+                    return DtoUtil.returnFail("暂时无房", "100512");
                 }
             }
 
