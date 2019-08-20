@@ -1,27 +1,23 @@
 package cn.itrip.controller;
 
 import cn.itrip.beans.dto.Dto;
-import cn.itrip.beans.pojo.ItripHotel;
-import cn.itrip.beans.pojo.ItripHotelRoom;
-import cn.itrip.beans.pojo.ItripUser;
-import cn.itrip.beans.vo.order.ItripSearchOrderVO;
-import cn.itrip.beans.vo.order.RoomStoreVO;
-import cn.itrip.beans.vo.order.ValidateRoomStoreVO;
+import cn.itrip.beans.pojo.*;
+import cn.itrip.beans.vo.order.*;
 import cn.itrip.beans.vo.store.StoreVO;
 import cn.itrip.common.DtoUtil;
 import cn.itrip.common.EmptyUtils;
 import cn.itrip.common.Page;
 import cn.itrip.common.ValidationToken;
 import cn.itrip.service.hotel.ItripHotelService;
+import cn.itrip.service.hotelorder.ItripHotelOrderService;
 import cn.itrip.service.hotelroom.ItripHotelRoomService;
 import cn.itrip.service.hoteltempstore.ItripHotelTempStoreService;
+import cn.itrip.service.orderlinkuser.ItripOrderLinkUserService;
 import cn.itrip.service.tradeends.ItripTradeEndsService;
 import org.apache.log4j.Logger;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
@@ -44,7 +40,9 @@ public class HotelOrderController {
     @Resource
     private ItripHotelTempStoreService itripHotelTempStoreService;
     @Resource
-
+    private ItripHotelOrderService itripHotelOrderService;
+    @Resource
+    private ItripOrderLinkUserService itriporderLinkUserService;
 
     /**
      *根据条件查询个人订单列表，并分页显示
@@ -138,4 +136,50 @@ public class HotelOrderController {
             return DtoUtil.returnFail("系统异常", "100513");
         }
     }
+
+
+    /**
+     * 根据订单ID获取订单信息
+     * @param orderId
+     * @param request
+     * @return
+     */
+    @RequestMapping(value = "/queryOrderById/{orderId}", method = RequestMethod.GET, produces = "application/json")
+    @ResponseBody
+    public Dto queryOrderById(@PathVariable Long orderId,HttpServletRequest request){
+        String token = request.getHeader("token");
+        ItripUser currentUser = validationToken.getCurrentUser(token);
+        if (EmptyUtils.isEmpty(currentUser)){
+            return DtoUtil.returnFail("token失效，请重登录", "100000");
+        }
+        try {
+            ItripHotelOrder itripHotelOrder = itripHotelOrderService.getItripHotelOrderById(orderId);
+            if (EmptyUtils.isEmpty(itripHotelOrder)){
+                return DtoUtil.returnFail("100533", "没有查询到相应订单");
+            }
+            ItripModifyHotelOrderVO orderVO = new ItripModifyHotelOrderVO();
+            BeanUtils.copyProperties(itripHotelOrder,orderVO);
+            Map<String,Object> param = new HashMap<>();
+            param.put("orderId",itripHotelOrder.getId());
+            List<ItripOrderLinkUserVo> orderLinkUserList = itriporderLinkUserService.getItripOrderLinkUserListByMap(param);
+            orderVO.setItripOrderLinkUserList(orderLinkUserList);
+            return DtoUtil.returnSuccess("查询成功",orderVO);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return DtoUtil.returnFail("系统异常", "100534");
+        }
+    }
+
+
+    /**
+     * 扫描中间表，执行库存操作
+     * @return
+     */
+    @RequestMapping(value = "/scanTradeEnd", method = RequestMethod.GET, produces = "application/json")
+    @ResponseBody
+    public Dto<Object> scanTradeEnd() {
+        Map param = new HashMap();
+        return null;
+    }
+
 }
