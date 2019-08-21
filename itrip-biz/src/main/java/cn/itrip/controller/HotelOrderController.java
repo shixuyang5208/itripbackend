@@ -43,6 +43,8 @@ public class HotelOrderController {
     private ItripHotelOrderService itripHotelOrderService;
     @Resource
     private ItripOrderLinkUserService itriporderLinkUserService;
+    @Resource
+
 
     /**
      *根据条件查询个人订单列表，并分页显示
@@ -131,11 +133,33 @@ public class HotelOrderController {
                     return DtoUtil.returnFail("暂时无房", "100512");
                 }
             }
-
         }catch (Exception e){
             return DtoUtil.returnFail("系统异常", "100513");
         }
     }
+
+
+    /**
+     * 通过订单ID查看个人订单详情
+     * @param orderId
+     * @param request
+     * @return
+     */
+    @RequestMapping(value = "/getpersonalorderinfo/{orderId}", method = RequestMethod.GET, produces = "application/json")
+    @ResponseBody
+    public Dto<Object> getPersonalOrderInfo(@PathVariable Long orderId, HttpServletRequest request){
+        logger.debug("orderId : " + orderId);
+        String token = request.getHeader("token");
+        logger.debug("token name is from header : " + token);
+        ItripUser currentUser = validationToken.getCurrentUser(token);
+        if (EmptyUtils.isNotEmpty(currentUser)){
+
+        }else {
+            return DtoUtil.returnFail("没有相关订单信息", "100526");
+        }
+        return null;
+    }
+
 
 
     /**
@@ -147,6 +171,7 @@ public class HotelOrderController {
     @RequestMapping(value = "/queryOrderById/{orderId}", method = RequestMethod.GET, produces = "application/json")
     @ResponseBody
     public Dto queryOrderById(@PathVariable Long orderId,HttpServletRequest request){
+        logger.debug("orderId : " + orderId);
         String token = request.getHeader("token");
         ItripUser currentUser = validationToken.getCurrentUser(token);
         if (EmptyUtils.isEmpty(currentUser)){
@@ -172,6 +197,41 @@ public class HotelOrderController {
 
 
     /**
+     * 通过订单ID查询个人订单详情的房间信息
+     * @param orderId
+     * @param request
+     * @return
+     */
+    @RequestMapping(value = "/getpersonalorderroominfo/{orderId}", method = RequestMethod.GET, produces = "application/json")
+    @ResponseBody
+    public Dto getPersonalOrderRoomInfo(@PathVariable Long orderId,HttpServletRequest request){
+        logger.debug("orderId : " + orderId);
+        String token = request.getHeader("token");
+        ItripUser currentUser = validationToken.getCurrentUser(token);
+        logger.debug("token name is from header : " + token);
+        try{
+            if (EmptyUtils.isEmpty(currentUser)){
+                return DtoUtil.returnFail("token失效，请重登录", "100000");
+            }else {
+                if (orderId == null){
+                    return DtoUtil.returnFail("请传递参数：orderId", "100529");
+                }
+                ItripPersonalOrderRoomVO vo = itripHotelOrderService.getItripHotelOrderRoomInfoById(orderId);
+                if (vo == null){
+                    return DtoUtil.returnFail("没有相关订单房型信息", "100530");
+                }
+                return DtoUtil.returnSuccess("获取个人订单房型信息成功", vo);
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+            return DtoUtil.returnFail("获取个人订单房型信息错误", "100531");
+        }
+    }
+
+
+
+
+    /**
      * 扫描中间表，执行库存操作
      * @return
      */
@@ -179,7 +239,36 @@ public class HotelOrderController {
     @ResponseBody
     public Dto<Object> scanTradeEnd() {
         Map param = new HashMap();
-        return null;
-    }
+        try{
+            param.put("flag",1);
+            param.put("oldFlag",0);
+            itripTradeEndsService.itriptxModifyItripTradeEnds(param);
+            List<ItripTradeEnds> itripTradeEndsList = itripTradeEndsService.getItripTradeEndsListByMap(param);
+            if (EmptyUtils.isNotEmpty(itripTradeEndsList)){
+                for (ItripTradeEnds ends : itripTradeEndsList){
+                    Map<String,Object> orderMap = new HashMap<>();
+                    orderMap.put("orderNo",ends.getOrderNo());
+                    List<ItripHotelOrder> orderList = itripHotelOrderService.getItripHotelOrderListByMap(orderMap);
+                    for (ItripHotelOrder order : orderList){
+                        Map<String,Object> roomStoreMap = new HashMap<>();
+                        roomStoreMap.put("startTime",order.getCheckInDate());
+                        roomStoreMap.put("endTime",order.getCheckOutDate());
+                        roomStoreMap.put("count",order.getCount());
+                        roomStoreMap.put("roomId",order.getRoomId());
+                        itripHotelTempStoreService.updateRoomStore(roomStoreMap);
+                    }
+                }
+                param.put("flag",2);
+                param.put("oldFlag",1);
+                itripTradeEndsService.itriptxModifyItripTradeEnds(param);
+                return DtoUtil.returnSuccess();
+            }else {
+                return DtoUtil.returnFail("100535", "没有查询到相应记录");
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+            return DtoUtil.returnFail("系统异常", "100536");
+        }
 
+    }
 }
