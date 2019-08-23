@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -234,8 +235,36 @@ public class HotelOrderController {
                     }
                 }
                 itripHotelOrder.setLinkUserName(userLinkUserName.toString());
+                //预订天数
                 itripHotelOrder.setBookingDays(days);
+                //预订类型：0:WEB端 1:手机端 2:其他客户端
+                if (token.startsWith("token:PC")){
+                    itripHotelOrder.setBookType(0);
+                }else if (token.startsWith("token:MOBILE")){
+                    itripHotelOrder.setBookType(1);
+                }else {
+                    itripHotelOrder.setBookType(2);
+                }
+                //初始订单状态为默认值0：未支付
+                itripHotelOrder.setOrderStatus(0);
+                //【MD5】（商品IDs+毫秒数+百万随机数）
+                StringBuffer md5 = new StringBuffer();
+                md5.append(itripHotelOrder.getHotelId());
+                md5.append(itripHotelOrder.getRoomId());
+                md5.append(System.currentTimeMillis());
+                md5.append(Math.random()*1000000);
+                String md5No = MD5.getMd5(String.valueOf(md5),6);
+                //生成订单编号:【机器码】 +【日期】+【MD5】
+                StringBuffer orderNo = new StringBuffer();
+                orderNo.append(systemConfig.getMachineCode());
+                orderNo.append(DateUtil.format(new Date(),"yyyyMMddHHmmss"));
+                orderNo.append(md5No);
+                itripHotelOrder.setOrderNo(String.valueOf(orderNo));
 
+                //订单总金额
+                itripHotelOrder.setPayAmount(itripHotelOrderService.getOrderPayAmount(days*addHotelOrderVO.getCount(),itripHotelOrder.getRoomId()));
+                Map param = itripHotelOrderService.itriptxAddItripHotelOrder(itripHotelOrder,userLinkUserList);
+                return DtoUtil.returnSuccess("生成订单成功！",param);
             }else if (flag && EmptyUtils.isEmpty(addHotelOrderVO)){
                 return DtoUtil.returnFail("不能提交空，请填写订单信息", "100506");
             }else {
@@ -244,6 +273,72 @@ public class HotelOrderController {
         }catch (Exception e){
             e.printStackTrace();
             return DtoUtil.returnFail("系统异常", "100508");
+        }
+    }
+
+
+    @RequestMapping(value = "/querysuccessorderinfo/{id}", method = RequestMethod.GET, produces = "application/json")
+    @ResponseBody
+    public Dto<Map<String, Boolean>> querySuccessOrderInfo(@PathVariable Long id,HttpServletRequest request){
+        String token = request.getHeader("token");
+        ItripUser currentUser = validationToken.getCurrentUser(token);
+        if (EmptyUtils.isEmpty(currentUser)){
+            return DtoUtil.returnFail("token失效请重新登录","100000");
+        }
+        if (EmptyUtils.isEmpty(id)){
+            return DtoUtil.returnFail("id不能为空", "100519");
+        }
+        try {
+            ItripHotelOrder order = itripHotelOrderService.getItripHotelOrderById(id);
+            if (EmptyUtils.isEmpty(order)){
+                return DtoUtil.returnFail("没有查询到相应订单", "100519");
+            }
+            ItripHotelRoom room = itripHotelRoomService.getItripHotelRoomById(order.getRoomId());
+            Map resultMap = new HashMap();
+            resultMap.put("id",order.getId());
+            resultMap.put("orderNo",order.getOrderNo());
+            resultMap.put("payType",order.getPayType());
+            resultMap.put("payAmount",order.getPayAmount());
+            resultMap.put("roomTitle",room.getRoomTitle());
+            return DtoUtil.returnSuccess("获取数据成功", resultMap);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return DtoUtil.returnFail("获取数据失败", "100520");
+        }
+    }
+
+
+    /**
+     * 修改订单的支付方式和状态
+     * @param itripModifyHotelOrderVO
+     * @param request
+     * @return
+     */
+    @RequestMapping(value = "/updateorderstatusandpaytype", method = RequestMethod.POST, produces = "application/json")
+    @ResponseBody
+    public Dto<Map<String, Boolean>> updateOrderStatusAndPayType(@RequestBody ItripModifyHotelOrderVO itripModifyHotelOrderVO, HttpServletRequest request) {
+        String token = request.getHeader("token");
+        logger.debug("token name is from header : " + token);
+        ItripUser currentUser = validationToken.getCurrentUser(token);
+        if (currentUser != null && itripModifyHotelOrderVO != null){
+            ItripHotelOrder itripHotelOrder = new ItripHotelOrder();
+            itripHotelOrder.setId(itripModifyHotelOrderVO.getId());
+            //设置支付状态为2：完成支付
+            itripHotelOrder.setOrderStatus(2);
+            itripHotelOrder.setPayType(itripModifyHotelOrderVO.getPayType());
+            itripHotelOrder.setModifiedBy(currentUser.getId());
+            itripHotelOrder.setModifyDate(new Date());
+            try {
+                itripHotelOrderService.itriptxModifyItripHotelOrder(itripHotelOrder);
+                return DtoUtil.returnSuccess("修改订单成功");
+            } catch (Exception e) {
+                e.printStackTrace();
+                return DtoUtil.returnFail("修改订单失败", "100522");
+            }
+        }else if (currentUser != null && itripModifyHotelOrderVO == null){
+            return DtoUtil.returnFail("不能提交空，请填写订单信息", "100523");
+        }else {
+            return DtoUtil.returnFail("token失效请重新登录","100000");
         }
     }
 

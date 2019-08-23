@@ -1,6 +1,7 @@
 package cn.itrip.service.hotelorder;
 
 import cn.itrip.beans.pojo.ItripHotelOrder;
+import cn.itrip.beans.pojo.ItripOrderLinkUser;
 import cn.itrip.beans.pojo.ItripUserLinkUser;
 import cn.itrip.beans.vo.order.ItripListHotelOrderVO;
 import cn.itrip.beans.vo.order.ItripPersonalOrderRoomVO;
@@ -8,11 +9,14 @@ import cn.itrip.common.Constants;
 import cn.itrip.common.EmptyUtils;
 import cn.itrip.common.Page;
 import cn.itrip.dao.hotelorder.ItripHotelOrderMapper;
+
 import cn.itrip.dao.hoteltempstore.ItripHotelTempStoreMapper;
+import cn.itrip.dao.orderlinkuser.ItripOrderLinkUserMapper;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -23,6 +27,8 @@ public class ItripHotelOrderServiceImpl implements ItripHotelOrderService {
     private ItripHotelOrderMapper itripHotelOrderMapper;
     @Resource
     private ItripHotelTempStoreMapper itripHotelTempStoreMapper;
+    @Resource
+    private ItripOrderLinkUserMapper itripOrderLinkUserMapper;
 
     @Override
     public ItripHotelOrder getItripHotelOrderById(Long id) throws Exception {
@@ -40,7 +46,38 @@ public class ItripHotelOrderServiceImpl implements ItripHotelOrderService {
     }
 
     @Override
-    public Map<String, String> itriptxAddItripHotelOrder(ItripHotelOrder itripHotelOrder, List<ItripUserLinkUser> itripOrderLinkUserList) throws Exception {
+    public Map<String, String> itriptxAddItripHotelOrder(ItripHotelOrder itripHotelOrder, List<ItripUserLinkUser> userLinkUserList) throws Exception {
+        Map map = new HashMap();
+        if (itripHotelOrder != null){
+            int flag = 0;
+            if (EmptyUtils.isNotEmpty(itripHotelOrder.getId())){
+                /**
+                 * 订单ID存在的情况下，说明是已经生成过的订单信息（即需要修改订单信息），
+                 * 为避免后续增删修改订单联系人麻烦，故先将订单联系人全部删除，后续选增需要的联系人即可
+                 */
+                itripOrderLinkUserMapper.deleteItripOrderLinkUserById(itripHotelOrder.getId());
+                itripHotelOrder.setCreationDate(new Date());
+                flag = itripHotelOrderMapper.updateItripHotelOrder(itripHotelOrder);
+            }else {
+                itripHotelOrder.setCreationDate(new Date());
+                flag = itripHotelOrderMapper.insertItripHotelOrder(itripHotelOrder);
+            }
+            if (flag > 0){
+                if (itripHotelOrder.getId() > 0){
+                    ItripOrderLinkUser itripOrderLinkUser = new ItripOrderLinkUser();
+                    itripOrderLinkUser.setOrderId(itripHotelOrder.getId());
+                    itripOrderLinkUser.setCreationDate(new Date());
+                    itripOrderLinkUser.setCreatedBy(itripHotelOrder.getCreatedBy());
+                    for (ItripUserLinkUser userLinkUser:userLinkUserList){
+                        itripOrderLinkUser.setLinkUserId(userLinkUser.getId());
+                        itripOrderLinkUser.setLinkUserName(userLinkUser.getLinkUserName());
+                        itripOrderLinkUserMapper.insertItripOrderLinkUser(itripOrderLinkUser);
+                    }
+                }
+                map.put("id",String.valueOf(itripHotelOrder.getId()));
+                map.put("orderNo",itripHotelOrder.getOrderNo());
+            }
+        }
         return null;
     }
 
