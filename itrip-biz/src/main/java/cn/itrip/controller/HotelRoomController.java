@@ -17,6 +17,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -67,7 +68,7 @@ public class HotelRoomController {
     @RequestMapping(value = "/queryhotelroombyhotel", method = RequestMethod.POST, produces = "application/json")
     @ResponseBody
     public Dto queryHotelRoomByHotel(@RequestBody SearchHotelRoomVO vo){
-        List<ItripHotelRoomVO> list = null;
+        List<List<ItripHotelRoomVO>> list = null;
 
             Map<String,Object> param = new HashMap();
             //判断必填的酒店ID
@@ -98,8 +99,14 @@ public class HotelRoomController {
                 param.put("payType",vo.getPayType());
             }
         try {
-            list = itripHotelRoomService.getItripHotelRoomListByMap(param);
-            return DtoUtil.returnSuccess("获取成功",list);
+            List<ItripHotelRoomVO> originalRoomList = itripHotelRoomService.getItripHotelRoomListByMap(param);
+            list = new ArrayList();
+            for (ItripHotelRoomVO roomVO : originalRoomList) {
+                List<ItripHotelRoomVO> tempList = new ArrayList<ItripHotelRoomVO>();
+                tempList.add(roomVO);
+                list.add(tempList);
+            }
+                return DtoUtil.returnSuccess("获取成功",list);
         }catch (Exception e){
             e.printStackTrace();
             return DtoUtil.returnFail("系统异常，获取酒店房型列表失败", "100304");

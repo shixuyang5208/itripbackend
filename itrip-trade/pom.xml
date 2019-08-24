@@ -24,6 +24,16 @@
             <artifactId>itrip-dao</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
+        <dependency>
+            <groupId>cn.itrip.alipay</groupId>
+            <artifactId>itrip-alipay-pc</artifactId>
+            <version>1.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpclient</artifactId>
+            <version>4.4.1</version>
+        </dependency>
     </dependencies>
 
     <build>
