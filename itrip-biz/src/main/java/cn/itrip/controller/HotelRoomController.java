@@ -113,7 +113,6 @@ public class HotelRoomController {
         }
     }
 
-
     /**
      * 查询酒店房间床型表
      * @return
